@@ -2,6 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Installer les dépendances système si besoin (PyMySQL n'en a pas besoin)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
