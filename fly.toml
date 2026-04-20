@@ -1,0 +1,11 @@
+fly secrets set \
+  APP_ENV=production \
+  APP_DEBUG=False \
+  APP_HOST=0.0.0.0 \
+  APP_PORT=8080 \
+  DB_HOST=xxx \
+  DB_PORT=3306 \
+  DB_NAME=xxx \
+  DB_USER=xxx \
+  DB_PASSWORD=xxx \
+  SECRET_KEY=xxx
