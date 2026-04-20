@@ -1,11 +1,17 @@
-fly secrets set \
-  APP_ENV=production \
-  APP_DEBUG=False \
-  APP_HOST=0.0.0.0 \
-  APP_PORT=8080 \
-  DB_HOST=xxx \
-  DB_PORT=3306 \
-  DB_NAME=xxx \
-  DB_USER=xxx \
-  DB_PASSWORD=xxx \
-  SECRET_KEY=xxx
+app = "rfidc"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
