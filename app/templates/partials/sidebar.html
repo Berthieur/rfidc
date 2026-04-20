@@ -1,0 +1,83 @@
+<aside class="sidebar d-none d-lg-flex">
+    <div class="sidebar-brand">
+        <div class="sidebar-logo">RFID</div>
+        <div>
+            <div class="fw-bold">Door Platform</div>
+            <small class="text-muted">Back-office</small>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="{{ request.url_for('dashboard.index') }}"
+           class="sidebar-link {% if request.url.path == request.url_for('dashboard.index').path %}active{% endif %}">
+            Dashboard
+        </a>
+
+        <a href="{{ request.url_for('authorized_users.index') }}"
+           class="sidebar-link {% if request.url.path.startswith(request.url_for('authorized_users.index').path) %}active{% endif %}">
+            Utilisateurs autorisés
+        </a>
+
+        <a href="{{ request.url_for('rfid_cards.index') }}"
+           class="sidebar-link {% if request.url.path.startswith(request.url_for('rfid_cards.index').path) %}active{% endif %}">
+            Cartes RFID
+        </a>
+
+        <a href="{{ request.url_for('assignments.index') }}"
+           class="sidebar-link {% if request.url.path.startswith(request.url_for('assignments.index').path) %}active{% endif %}">
+            Affectations
+        </a>
+
+        <a href="{{ request.url_for('devices.index') }}"
+           class="sidebar-link {% if request.url.path.startswith(request.url_for('devices.index').path) %}active{% endif %}">
+            Appareils
+        </a>
+
+        <a href="{{ request.url_for('access_logs.index') }}"
+           class="sidebar-link {% if request.url.path.startswith(request.url_for('access_logs.index').path) %}active{% endif %}">
+            Historique d’accès
+        </a>
+    </nav>
+</aside>
+
+<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="mobileSidebarLabel">RFID Door Platform</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <div class="mobile-sidebar">
+            <nav class="sidebar-nav p-3">
+                <a href="{{ request.url_for('dashboard.index') }}"
+                   class="sidebar-link {% if request.url.path == request.url_for('dashboard.index').path %}active{% endif %}">
+                    Dashboard
+                </a>
+
+                <a href="{{ request.url_for('authorized_users.index') }}"
+                   class="sidebar-link {% if request.url.path.startswith(request.url_for('authorized_users.index').path) %}active{% endif %}">
+                    Utilisateurs autorisés
+                </a>
+
+                <a href="{{ request.url_for('rfid_cards.index') }}"
+                   class="sidebar-link {% if request.url.path.startswith(request.url_for('rfid_cards.index').path) %}active{% endif %}">
+                    Cartes RFID
+                </a>
+
+                <a href="{{ request.url_for('assignments.index') }}"
+                   class="sidebar-link {% if request.url.path.startswith(request.url_for('assignments.index').path) %}active{% endif %}">
+                    Affectations
+                </a>
+
+                <a href="{{ request.url_for('devices.index') }}"
+                   class="sidebar-link {% if request.url.path.startswith(request.url_for('devices.index').path) %}active{% endif %}">
+                    Appareils
+                </a>
+
+                <a href="{{ request.url_for('access_logs.index') }}"
+                   class="sidebar-link {% if request.url.path.startswith(request.url_for('access_logs.index').path) %}active{% endif %}">
+                    Historique d’accès
+                </a>
+            </nav>
+        </div>
+    </div>
+</div>

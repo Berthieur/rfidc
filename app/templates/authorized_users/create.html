@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Créer un utilisateur autorisé{% endblock %}
+
+{% block page_content %}
+{% set now_dt = request.state.now if request.state.now is defined else none %}
+{% set default_valid_from = now_dt.strftime("%Y-%m-%dT%H:%M") if now_dt else "" %}
+{% set default_valid_until = (now_dt.replace(year=now_dt.year + 1)).strftime("%Y-%m-%dT%H:%M") if now_dt else "" %}
+
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Créer un utilisateur autorisé</h2>
+        <p class="page-subtitle">Ajoute une nouvelle personne autorisée à accéder à la porte.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{request.url_for('authorized_users.index')}}" class="btn btn-outline-secondary">Retour à la liste</a>
+    </div>
+</div>
+
+
+<div class="card form-page-card">
+    <div class="card-body">
+        <form method="post" action="{{request.url_for('authorized_users.create.store')}}">
+            <div class="form-section">
+                <div class="form-section-title">Informations personnelles</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="first_name" class="form-label">Prénom</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ form_data.get('first_name', '') }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="last_name" class="form-label">Nom</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ form_data.get('last_name', '') }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="gender" class="form-label">Genre</label>
+                        <select class="form-select" id="gender" name="gender" required>
+                            <option value="">Choisir</option>
+                            <option value="Homme" {% if form_data.get('gender') == 'Homme' %}selected{% endif %}>Homme</option>
+                            <option value="Femme" {% if form_data.get('gender') == 'Femme' %}selected{% endif %}>Femme</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="phone" class="form-label">Téléphone</label>
+                        <input
+                            type="tel"
+                            class="form-control"
+                            id="phone"
+                            name="phone"
+                            value="{{ form_data.get('phone', '') }}"
+                            placeholder="+261340000001"
+                            pattern="^\+[0-9]{8,15}$"
+                            inputmode="tel"
+                        >
+                        <div class="form-text">
+                            Format attendu : + suivi de 8 à 15 chiffres.
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="email" class="form-label">E-mail</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ form_data.get('email', '') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Accès et validité</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="reference_code" class="form-label">Code de référence</label>
+                        <input type="text" class="form-control" id="reference_code" name="reference_code" value="{{ form_data.get('reference_code', '') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="valid_from" class="form-label">Valide à partir de</label>
+                        <input
+                            type="datetime-local"
+                            class="form-control"
+                            id="valid_from"
+                            name="valid_from"
+                            value="{{ form_data.get('valid_from', default_valid_from) }}"
+                        >
+                    </div>
+                    <div class="col-md-3">
+                        <label for="valid_until" class="form-label">Valide jusqu’à</label>
+                        <input
+                            type="datetime-local"
+                            class="form-control"
+                            id="valid_until"
+                            name="valid_until"
+                            value="{{ form_data.get('valid_until', default_valid_until) }}"
+                        >
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if form_data.get('is_active', True) %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Utilisateur actif</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Notes</div>
+                <textarea class="form-control" id="notes" name="notes" rows="4">{{ form_data.get('notes', '') }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a href="{{request.url_for('authorized_users.index')}}" class="btn btn-outline-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

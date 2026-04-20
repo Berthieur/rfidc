@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Détail log d’accès{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Détail log d’accès</h2>
+        <p class="page-subtitle">Détail complet d’un événement de contrôle d’accès.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ request.url_for('access_logs.index') }}" class="btn btn-outline-secondary">Retour</a>
+    </div>
+</div>
+
+<div class="card detail-page-card">
+    <div class="card-body">
+        <div class="detail-section">
+            <div class="detail-section-title">Scan</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-item-label">UID scanné</span><div class="detail-item-value">{{ log.uid_scanned }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Date/heure</span><div class="detail-item-value">{{ log.scanned_at.strftime("%d/%m/%Y %H:%M:%S") if log.scanned_at else "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Statut</span><div class="detail-item-value">{{ log.access_status }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Direction</span><div class="detail-item-value">{{ log.access_direction or "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Porte ouverte</span><div class="detail-item-value">{{ "Oui" if log.door_opened else "Non" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Raison</span><div class="detail-item-value">{{ log.reason or "—" }}</div></div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Appareil et contexte</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-item-label">Appareil</span><div class="detail-item-value">{% if log.device %}{{ log.device.device_name }}{% else %}—{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Code appareil</span><div class="detail-item-value">{% if log.device %}{{ log.device.device_code }}{% else %}—{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Utilisateur</span><div class="detail-item-value">{% if log.authorized_user %}{{ log.authorized_user.first_name }} {{ log.authorized_user.last_name }}{% else %}—{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Référence utilisateur</span><div class="detail-item-value">{% if log.authorized_user %}{{ log.authorized_user.reference_code or "—" }}{% else %}—{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Carte RFID</span><div class="detail-item-value">{% if log.rfid_card %}{{ log.rfid_card.uid }}{% else %}—{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Affectation</span><div class="detail-item-value">{% if log.assignment %}#{{ log.assignment.id }}{% else %}—{% endif %}</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

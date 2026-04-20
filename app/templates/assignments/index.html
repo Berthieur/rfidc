@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Affectations RFID{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Affectations RFID</h2>
+        <p class="page-subtitle">Gestion des liaisons entre cartes RFID et utilisateurs autorisés.</p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button
+            class="btn btn-outline-primary"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#filtersPanel"
+            aria-expanded="false"
+            aria-controls="filtersPanel"
+        >
+            Filtres
+        </button>
+
+        {% if current_user.role and current_user.role.name == "admin" %}
+        <a href="{{request.url_for('assignments.create.index')}}" class="btn btn-primary">
+            Nouvelle affectation
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="collapse mb-4" id="filtersPanel">
+    <div class="card filter-panel">
+        <div class="card-body">
+            <form method="get" action="{{request.url_for('assignments.index')}}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="rfid_card_id" class="form-label">Carte RFID</label>
+                    <select class="form-select" id="rfid_card_id" name="rfid_card_id">
+                        <option value="">Toutes</option>
+                        {% for card in cards %}
+                        <option value="{{ card.id }}" {% if filters.rfid_card_id == card.id %}selected{% endif %}>
+                            {{ card.uid }}{% if card.card_label %} - {{ card.card_label }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="authorized_user_id" class="form-label">Utilisateur</label>
+                    <select class="form-select" id="authorized_user_id" name="authorized_user_id">
+                        <option value="">Tous</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {% if filters.authorized_user_id == user.id %}selected{% endif %}>
+                            {{ user.first_name }} {{ user.last_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="assigned_by_staff_id" class="form-label">Attribuée par</label>
+                    <select class="form-select" id="assigned_by_staff_id" name="assigned_by_staff_id">
+                        <option value="">Tous</option>
+                        {% for staff in staff_users %}
+                        <option value="{{ staff.id }}" {% if filters.assigned_by_staff_id == staff.id %}selected{% endif %}>
+                            {{ staff.first_name }} {{ staff.last_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Statut</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Tous</option>
+                        {% for item in statuses %}
+                        <option value="{{ item }}" {% if filters.status == item %}selected{% endif %}>
+                            {{ item }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Appliquer</button>
+                    <a href="{{request.url_for('assignments.index')}}" class="btn btn-outline-secondary">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card data-card">
+    <div class="card-body">
+        {% if assignments %}
+        <div class="table-header-bar">
+            <div>
+                <span class="table-counter">{{ total }}</span>
+                <span class="text-muted">résultat(s)</span>
+            </div>
+            <div class="text-muted small">
+                Page {{ current_page }} / {{ total_pages }}
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <!-- On doit avoir un ID pour mieux cerner c'est quel assignement par rapport rfid_card & authorized_id -->
+                        <th>Carte RFID</th>
+                        <th>Utilisateur</th>
+                        <th>Attribuée par</th>
+                        <th>Attribuée le</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in assignments %}
+                    <tr>
+                        <td>{{ assignment.id }}</td>
+                        <td>
+                            {% if assignment.rfid_card %}
+                            <div class="fw-semibold">{{ assignment.rfid_card.uid }}</div>
+                            <small class="text-muted">{{ assignment.rfid_card.card_label or "—" }}</small>
+                            {% else %}
+                            <span class="text-muted">Carte introuvable</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if assignment.authorized_user %}
+                            <div class="fw-semibold">
+                                {{ assignment.authorized_user.first_name }} {{ assignment.authorized_user.last_name }}
+                            </div>
+                            <small class="text-muted">{{ assignment.authorized_user.reference_code or "—" }}</small>
+                            {% else %}
+                            <span class="text-muted">Utilisateur introuvable</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if assignment.assigned_by_staff %}
+                            {{ assignment.assigned_by_staff.first_name }} {{ assignment.assigned_by_staff.last_name }}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ assignment.assigned_at.strftime("%d/%m/%Y %H:%M") if assignment.assigned_at else "—" }}</td>
+                        <td>
+                            {% if assignment.status == "active" %}
+                            <span class="badge rounded-pill text-bg-success">active</span>
+                            {% elif assignment.status == "expired" %}
+                            <span class="badge rounded-pill text-bg-warning">expired</span>
+                            {% elif assignment.status == "unassigned" %}
+                            <span class="badge rounded-pill text-bg-secondary">unassigned</span>
+                            {% elif assignment.status == "revoked" %}
+                            <span class="badge rounded-pill text-bg-danger">revoked</span>
+                            {% else %}
+                            <span class="badge rounded-pill text-bg-dark">{{ assignment.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            
+                            <a href="{{request.url_for('assignments.show',assignment_id=assignment.id)}}" class="btn btn-sm btn-outline-info">
+                                Voir
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <nav aria-label="Pagination affectations RFID" class="mt-4">
+            <ul class="pagination pagination-modern mb-0">
+                <li class="page-item {% if not has_previous %}disabled{% endif %}">
+                    <a class="page-link"
+
+                       href="{{request.url_for('assignments.index')}}?page={{ previous_page }}&rfid_card_id={{ filters.rfid_card_id or '' }}&authorized_user_id={{ filters.authorized_user_id or '' }}&assigned_by_staff_id={{ filters.assigned_by_staff_id or '' }}&status={{ filters.status }}">
+                        Précédent
+                    </a>
+                </li>
+
+                {% for page_number in page_numbers %}
+                <li class="page-item {% if page_number == current_page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{request.url_for('assignments.index')}}?page={{ page_number }}&rfid_card_id={{ filters.rfid_card_id or '' }}&authorized_user_id={{ filters.authorized_user_id or '' }}&assigned_by_staff_id={{ filters.assigned_by_staff_id or '' }}&status={{ filters.status }}">
+                        {{ page_number }}
+                    </a>
+                </li>
+                {% endfor %}
+
+                <li class="page-item {% if not has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{request.url_for('assignments.index')}}?page={{ next_page }}&rfid_card_id={{ filters.rfid_card_id or '' }}&authorized_user_id={{ filters.authorized_user_id or '' }}&assigned_by_staff_id={{ filters.assigned_by_staff_id or '' }}&status={{ filters.status }}">
+                        Suivant
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% else %}
+        <div class="empty-state">
+            <h5 class="mb-2">Aucune affectation trouvée</h5>
+            <p class="text-muted mb-0">Essaie de modifier les filtres pour élargir la recherche.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

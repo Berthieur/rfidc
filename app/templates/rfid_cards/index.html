@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Cartes RFID{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Cartes RFID</h2>
+        <p class="page-subtitle">Gestion des badges RFID et de leur statut.</p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button
+            class="btn btn-outline-primary"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#filtersPanel"
+            aria-expanded="false"
+            aria-controls="filtersPanel"
+        >
+            Filtres
+        </button>
+
+        {% if current_user.role and current_user.role.name == "admin" %}
+        <a href="{{ request.url_for('rfid_cards.create.index') }}" class="btn btn-primary">
+            Nouvelle carte
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="collapse mb-4" id="filtersPanel">
+    <div class="card filter-panel">
+        <div class="card-body">
+            <form method="get" action="{{ request.url_for('rfid_cards.index') }}" class="row g-3">
+                <div class="col-md-6">
+                    <label for="search" class="form-label">Recherche</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="search"
+                        name="search"
+                        value="{{ filters.search }}"
+                        placeholder="UID, libellé, statut..."
+                    >
+                </div>
+
+                <div class="col-md-6">
+                    <label for="status" class="form-label">Statut</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Tous</option>
+                        {% for item in statuses %}
+                        <option value="{{ item }}" {% if filters.status == item %}selected{% endif %}>
+                            {{ item }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Appliquer</button>
+                    <a href="{{ request.url_for('rfid_cards.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card data-card">
+    <div class="card-body">
+        {% if cards %}
+        <div class="table-header-bar">
+            <div>
+                <span class="table-counter">{{ total }}</span>
+                <span class="text-muted">résultat(s)</span>
+            </div>
+            <div class="text-muted small">
+                Page {{ current_page }} / {{ total_pages }}
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern align-middle">
+                <thead>
+                    <tr>
+                        <th>UID</th>
+                        <th>Libellé</th>
+                        <th>Statut</th>
+                        <th>Date d’émission</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for card in cards %}
+                    <tr>
+                        <td class="fw-semibold">{{ card.uid }}</td>
+                        <td>{{ card.card_label or "—" }}</td>
+                        <td>
+                            {% if card.status == "available" %}
+                            <span class="badge rounded-pill text-bg-success">available</span>
+                            {% elif card.status == "assigned" %}
+                            <span class="badge rounded-pill text-bg-primary">assigned</span>
+                            {% elif card.status == "lost" %}
+                            <span class="badge rounded-pill text-bg-warning">lost</span>
+                            {% elif card.status == "blocked" %}
+                            <span class="badge rounded-pill text-bg-danger">blocked</span>
+                            {% elif card.status == "damaged" %}
+                            <span class="badge rounded-pill text-bg-dark">damaged</span>
+                            {% else %}
+                            <span class="badge rounded-pill text-bg-secondary">{{ card.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ card.issued_at.strftime("%d/%m/%Y %H:%M") if card.issued_at else "—" }}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ request.url_for('rfid_cards.show', rfid_card_id=card.id) }}" class="btn btn-sm btn-outline-info">
+                                Voir
+                            </a>
+
+                            {% if current_user.role and current_user.role.name == "admin" %}
+                            <a href="{{ request.url_for('rfid_cards.edit.show', rfid_card_id=card.id) }}" class="btn btn-sm btn-outline-primary">
+                                Modifier
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <nav aria-label="Pagination cartes RFID" class="mt-4">
+            <ul class="pagination pagination-modern mb-0">
+                <li class="page-item {% if not has_previous %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ request.url_for('rfid_cards.index') }}?page={{ previous_page }}&search={{ filters.search }}&status={{ filters.status }}">
+                        Précédent
+                    </a>
+                </li>
+
+                {% for page_number in page_numbers %}
+                <li class="page-item {% if page_number == current_page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ request.url_for('rfid_cards.index') }}?page={{ page_number }}&search={{ filters.search }}&status={{ filters.status }}">
+                        {{ page_number }}
+                    </a>
+                </li>
+                {% endfor %}
+
+                <li class="page-item {% if not has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ request.url_for('rfid_cards.index') }}?page={{ next_page }}&search={{ filters.search }}&status={{ filters.status }}">
+                        Suivant
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% else %}
+        <div class="empty-state">
+            <h5 class="mb-2">Aucune carte trouvée</h5>
+            <p class="text-muted mb-0">Essaie de modifier les filtres pour élargir la recherche.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Détail carte RFID{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">{{ card.uid }}</h2>
+        <p class="page-subtitle">Détail complet d’une carte RFID.</p>
+    </div>
+    <div class="page-actions">
+        {% if current_user.role and current_user.role.name == "admin" %}
+        <a href="{{ request.url_for('rfid_cards.edit.show', rfid_card_id=card.id) }}" class="btn btn-primary">Modifier</a>
+        {% endif %}
+        <a href="{{ request.url_for('rfid_cards.index') }}" class="btn btn-outline-secondary">Retour</a>
+    </div>
+</div>
+
+<div class="card detail-page-card">
+    <div class="card-body">
+        <div class="detail-section">
+            <div class="detail-section-title">Informations générales</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-item-label">UID</span><div class="detail-item-value">{{ card.uid }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Libellé</span><div class="detail-item-value">{{ card.card_label or "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Statut</span><div class="detail-item-value">{{ card.status }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Date d’émission</span><div class="detail-item-value">{{ card.issued_at.strftime("%d/%m/%Y %H:%M") if card.issued_at else "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Créée le</span><div class="detail-item-value">{{ card.created_at.strftime("%d/%m/%Y %H:%M") }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Mise à jour le</span><div class="detail-item-value">{{ card.updated_at.strftime("%d/%m/%Y %H:%M") }}</div></div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Notes</div>
+            <div class="detail-note-box">{{ card.notes or "Aucune note." }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

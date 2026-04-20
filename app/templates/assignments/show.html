@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Détail affectation RFID{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Affectation #{{ assignment.id }}</h2>
+        <p class="page-subtitle">Détail complet d’une affectation RFID.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{request.url_for('assignments.index')}}" class="btn btn-outline-secondary">Retour</a>
+    </div>
+</div>
+
+<div class="card detail-page-card mb-4">
+    <div class="card-body">
+        <div class="detail-section">
+            <div class="detail-section-title">Carte et utilisateur</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-item-label">Carte RFID</span><div class="detail-item-value">{% if assignment.rfid_card %}{{ assignment.rfid_card.uid }}{% else %}Carte introuvable{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Libellé carte</span><div class="detail-item-value">{% if assignment.rfid_card %}{{ assignment.rfid_card.card_label or "—" }}{% else %}—{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Utilisateur</span><div class="detail-item-value">{% if assignment.authorized_user %}{{ assignment.authorized_user.first_name }} {{ assignment.authorized_user.last_name }}{% else %}Utilisateur introuvable{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Référence utilisateur</span><div class="detail-item-value">{% if assignment.authorized_user %}{{ assignment.authorized_user.reference_code or "—" }}{% else %}—{% endif %}</div></div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Statut et dates</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-item-label">Statut</span><div class="detail-item-value">{{ assignment.status }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Attribuée le</span><div class="detail-item-value">{{ assignment.assigned_at.strftime("%d/%m/%Y %H:%M") if assignment.assigned_at else "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Expire le</span><div class="detail-item-value">{{ assignment.expired_at.strftime("%d/%m/%Y %H:%M") if assignment.expired_at else "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Retirée le</span><div class="detail-item-value">{{ assignment.unassigned_at.strftime("%d/%m/%Y %H:%M") if assignment.unassigned_at else "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Attribuée par</span><div class="detail-item-value">{% if assignment.assigned_by_staff %}{{ assignment.assigned_by_staff.first_name }} {{ assignment.assigned_by_staff.last_name }}{% else %}—{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Mise à jour le</span><div class="detail-item-value">{{ assignment.updated_at.strftime("%d/%m/%Y %H:%M") }}</div></div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Notes</div>
+            <div class="detail-note-box">{{ assignment.notes or "Aucune note." }}</div>
+        </div>
+    </div>
+</div>
+
+{% if current_user.role and current_user.role.name == "admin" and assignment.status == "active" %}
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card action-card">
+            <div class="card-body">
+                <h5 class="card-title">Retirer l’affectation</h5>
+                <form method="post" action="{{request.url_for('assignments.unassign',assignment_id=assignment.id)}}">
+                    <div class="mb-3">
+                        <label for="unassign_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="unassign_notes" name="notes" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-outline-secondary w-100">Retirer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card action-card">
+            <div class="card-body">
+                <h5 class="card-title">Révoquer l’affectation</h5>
+                <form method="post" action="{{request.url_for('assignments.revoke',assignment_id=assignment.id)}}">
+                    <div class="mb-3">
+                        <label for="revoke_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="revoke_notes" name="notes" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-outline-danger w-100">Révoquer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card action-card">
+            <div class="card-body">
+                <h5 class="card-title">Marquer comme expirée</h5>
+                <form method="post" action="{{request.url_for('assignments.expire',assignment_id=assignment.id)}}">
+                    <div class="mb-3">
+                        <label for="expire_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="expire_notes" name="notes" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-outline-warning w-100">Expirer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

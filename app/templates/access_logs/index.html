@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Historique d’accès{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Historique d’accès</h2>
+        <p class="page-subtitle">
+            Consulte les scans RFID, les décisions d’accès et les ouvertures de porte.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button
+            class="btn btn-outline-primary"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#filtersPanel"
+            aria-expanded="false"
+            aria-controls="filtersPanel"
+        >
+            Filtres
+        </button>
+    </div>
+</div>
+
+<div class="collapse mb-4" id="filtersPanel">
+    <div class="card filter-panel">
+        <div class="card-body">
+            <form method="get" action="{{request.url_for('access_logs.index')}}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="uid" class="form-label">UID</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="uid"
+                        name="uid"
+                        value="{{ filters.uid }}"
+                        placeholder="Ex: A1B2C3D4"
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <label for="device_id" class="form-label">Appareil</label>
+                    <select class="form-select" id="device_id" name="device_id">
+                        <option value="">Tous</option>
+                        {% for device in devices %}
+                        <option value="{{ device.id }}" {% if filters.device_id == device.id %}selected{% endif %}>
+                            {{ device.device_name }} ({{ device.device_code }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="authorized_user_id" class="form-label">Utilisateur</label>
+                    <select class="form-select" id="authorized_user_id" name="authorized_user_id">
+                        <option value="">Tous</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {% if filters.authorized_user_id == user.id %}selected{% endif %}>
+                            {{ user.first_name }} {{ user.last_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="direction" class="form-label">Direction</label>
+                    <select class="form-select" id="direction" name="direction">
+                        <option value="">Toutes</option>
+                        <option value="entry" {% if filters.direction == "entry" %}selected{% endif %}>Entrée</option>
+                        <option value="exit" {% if filters.direction == "exit" %}selected{% endif %}>Sortie</option>
+                        <option value="unknown" {% if filters.direction == "unknown" %}selected{% endif %}>Inconnue</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="access_status" class="form-label">Statut d’accès</label>
+                    <select class="form-select" id="access_status" name="access_status">
+                        <option value="">Tous</option>
+                        <option value="granted" {% if filters.access_status == "granted" %}selected{% endif %}>Granted</option>
+                        <option value="denied" {% if filters.access_status == "denied" %}selected{% endif %}>Denied</option>
+                        <option value="ignored" {% if filters.access_status == "ignored" %}selected{% endif %}>Ignored</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">Date début</label>
+                    <input
+                        type="datetime-local"
+                        step="1"
+                        class="form-control"
+                        id="date_from"
+                        name="date_from"
+                        value="{{ filters.date_from }}"
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">Date fin</label>
+                    <input
+                        type="datetime-local"
+                        step="1"
+                        class="form-control"
+                        id="date_to"
+                        name="date_to"
+                        value="{{ filters.date_to }}"
+                    >
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Appliquer</button>
+                    <a href="{{request.url_for('access_logs.index')}}" class="btn btn-outline-secondary">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card data-card">
+    <div class="card-body">
+        {% if logs %}
+        <div class="table-header-bar">
+            <div>
+                <span class="table-counter">{{ total }}</span>
+                <span class="text-muted">résultat(s)</span>
+            </div>
+            <div class="text-muted small">
+                Page {{ current_page }} / {{ total_pages }}
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern align-middle">
+                <thead>
+                    <tr>
+                        <th>Date/heure</th>
+                        <th>UID</th>
+                        <th>Appareil</th>
+                        <th>Utilisateur</th>
+                        <th>Décision</th>
+                        <th>Direction</th>
+                        <th>Porte</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.scanned_at.strftime("%d/%m/%Y %H:%M:%S") if log.scanned_at else "—" }}</td>
+                        <td>
+                            <span class="fw-semibold">{{ log.uid_scanned }}</span>
+                        </td>
+                        <td>
+                            {% if log.device %}
+                            <div>{{ log.device.device_name }}</div>
+                            <small class="text-muted">{{ log.device.device_code }}</small>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.authorized_user %}
+                            {{ log.authorized_user.first_name }} {{ log.authorized_user.last_name }}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.access_status == "granted" %}
+                            <span class="badge rounded-pill text-bg-success">granted</span>
+                            {% elif log.access_status == "denied" %}
+                            <span class="badge rounded-pill text-bg-danger">denied</span>
+                            {% else %}
+                            <span class="badge rounded-pill text-bg-secondary">ignored</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.access_direction or "—" }}</td>
+                        <td>
+                            {% if log.door_opened %}
+                            <span class="badge rounded-pill text-bg-success">ouverte</span>
+                            {% else %}
+                            <span class="badge rounded-pill text-bg-secondary">fermée</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{request.url_for('access_logs.show',access_log_id=log.id)}}" class="btn btn-sm btn-outline-primary">
+                                Voir
+
+                                <!-- access_log_id -->
+                                
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <nav aria-label="Pagination historique d’accès" class="mt-4">
+            <ul class="pagination pagination-modern mb-0">
+                <li class="page-item {% if not has_previous %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ request.url_for('access_logs.index') }}?page={{ previous_page }}&uid={{ filters.uid }}&device_id={{ filters.device_id or '' }}&authorized_user_id={{ filters.authorized_user_id or '' }}&direction={{ filters.direction }}&access_status={{ filters.access_status }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">
+                        Précédent
+                    </a>
+                </li>
+                
+                {% for page_number in page_numbers %}
+                <li class="page-item {% if page_number == current_page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ request.url_for('access_logs.index') }}?page={{ page_number }}&uid={{ filters.uid }}&device_id={{ filters.device_id or '' }}&authorized_user_id={{ filters.authorized_user_id or '' }}&direction={{ filters.direction }}&access_status={{ filters.access_status }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">
+                        {{ page_number }}
+                    </a>
+                </li>
+                {% endfor %}
+
+                <li class="page-item {% if not has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ request.url_for('access_logs.index') }}?page={{ next_page }}&uid={{ filters.uid }}&device_id={{ filters.device_id or '' }}&authorized_user_id={{ filters.authorized_user_id or '' }}&direction={{ filters.direction }}&access_status={{ filters.access_status }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}">
+                        Suivant
+                    </a>
+
+                    
+                </li>
+            </ul>
+        </nav>
+        {% else %}
+        <div class="empty-state">
+            <h5 class="mb-2">Aucun log trouvé</h5>
+            <p class="text-muted mb-0">Essaie de modifier les filtres pour élargir la recherche.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

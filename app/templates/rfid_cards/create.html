@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Créer une carte RFID{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Créer une carte RFID</h2>
+        <p class="page-subtitle">Ajoute un nouveau badge RFID dans le système.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ request.url_for('rfid_cards.index') }}" class="btn btn-outline-secondary">
+            Retour à la liste
+        </a>
+    </div>
+</div>
+
+<div class="card form-page-card">
+    <div class="card-body">
+        <form method="post" action="{{ request.url_for('rfid_cards.create.store') }}">
+            <div class="form-section">
+                <div class="form-section-title">Informations de la carte</div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="uid" class="form-label">UID</label>
+                        <div class="uid-capture-wrap">
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="uid"
+                                value="{{ form_data.get('uid', '') }}"
+                                readonly
+                                required
+                            >
+
+                            <input
+                                type="hidden"
+                                id="uid_hidden"
+                                name="uid"
+                                value="{{ form_data.get('uid', '') }}"
+                            >
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-primary btn-sm uid-capture-btn"
+                                id="startUidCaptureBtn"
+                            >
+                                Lire depuis le capteur
+                            </button>
+                        </div>
+
+                        <div class="form-text uid-capture-status" id="uidCaptureStatus">
+                            Clique sur « Lire depuis le capteur », puis badge une carte RFID dans les 15 secondes.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="card_label" class="form-label">Libellé</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="card_label"
+                            name="card_label"
+                            value="{{ form_data.get('card_label', '') }}"
+                        >
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="status" class="form-label">Statut</label>
+                        <select class="form-select" id="status" name="status" required>
+                            {% for item in statuses %}
+                            <option value="{{ item }}" {% if form_data.get('status', 'available') == item %}selected{% endif %}>
+                                {{ item }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="issued_at" class="form-label">Date d’émission</label>
+                        <input
+                            type="datetime-local"
+                            class="form-control"
+                            id="issued_at"
+                            name="issued_at"
+                            value="{{ form_data.get('issued_at', '') }}"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Notes</div>
+                <textarea
+                    class="form-control"
+                    id="notes"
+                    name="notes"
+                    rows="4"
+                >{{ form_data.get('notes', '') }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a href="{{ request.url_for('rfid_cards.index') }}" class="btn btn-outline-secondary">
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

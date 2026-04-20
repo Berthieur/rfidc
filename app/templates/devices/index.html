@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Appareils{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Appareils</h2>
+        <p class="page-subtitle">Gestion des ESP32 et autres appareils autorisés.</p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button
+            class="btn btn-outline-primary"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#filtersPanel"
+            aria-expanded="false"
+            aria-controls="filtersPanel"
+        >
+            Filtres
+        </button>
+
+        {% if current_user.role and current_user.role.name == "admin" %}
+        <a href="{{ request.url_for('devices.create.index') }}" class="btn btn-primary">
+            Nouvel appareil
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="collapse mb-4" id="filtersPanel">
+    <div class="card filter-panel">
+        <div class="card-body">
+            <form method="get" action="{{ request.url_for('devices.index') }}" class="row g-3">
+                <div class="col-md-8">
+                    <label for="search" class="form-label">Recherche</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="search"
+                        name="search"
+                        value="{{ filters.search }}"
+                        placeholder="Nom, code, localisation..."
+                    >
+                </div>
+
+                <div class="col-md-4">
+                    <label for="is_active" class="form-label">Statut</label>
+                    <select class="form-select" id="is_active" name="is_active">
+                        <option value="">Tous</option>
+                        <option value="active" {% if filters.is_active == "active" %}selected{% endif %}>Actif</option>
+                        <option value="inactive" {% if filters.is_active == "inactive" %}selected{% endif %}>Inactif</option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Appliquer</button>
+                    <a href="{{ request.url_for('devices.index') }}" class="btn btn-outline-secondary">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card data-card">
+    <div class="card-body">
+        {% if devices %}
+        <div class="table-header-bar">
+            <div>
+                <span class="table-counter">{{ total }}</span>
+                <span class="text-muted">résultat(s)</span>
+            </div>
+            <div class="text-muted small">
+                Page {{ current_page }} / {{ total_pages }}
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern align-middle">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Code appareil</th>
+                        <th>Localisation</th>
+                        <th>Statut</th>
+                        <th>Dernière activité</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <td class="fw-semibold">{{ device.device_name }}</td>
+                        <td>{{ device.device_code }}</td>
+                        <td>{{ device.location or "—" }}</td>
+                        <td>
+                            {% if device.is_active %}
+                            <span class="badge rounded-pill text-bg-success">Actif</span>
+                            {% else %}
+                            <span class="badge rounded-pill text-bg-secondary">Inactif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ device.last_seen_at.strftime("%d/%m/%Y %H:%M") if device.last_seen_at else "—" }}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ request.url_for('devices.show', device_id=device.id) }}" class="btn btn-sm btn-outline-info">
+                                Voir
+                            </a>
+
+                            {% if current_user.role and current_user.role.name == "admin" %}
+                            <a href="{{ request.url_for('devices.edit.show', device_id=device.id) }}" class="btn btn-sm btn-outline-primary">
+                                Modifier
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <nav aria-label="Pagination appareils" class="mt-4">
+            <ul class="pagination pagination-modern mb-0">
+                <li class="page-item {% if not has_previous %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ request.url_for('devices.index') }}?page={{ previous_page }}&search={{ filters.search }}&is_active={{ filters.is_active }}">
+                        Précédent
+                    </a>
+                </li>
+
+                {% for page_number in page_numbers %}
+                <li class="page-item {% if page_number == current_page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ request.url_for('devices.index') }}?page={{ page_number }}&search={{ filters.search }}&is_active={{ filters.is_active }}">
+                        {{ page_number }}
+                    </a>
+                </li>
+                {% endfor %}
+
+                <li class="page-item {% if not has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ request.url_for('devices.index') }}?page={{ next_page }}&search={{ filters.search }}&is_active={{ filters.is_active }}">
+                        Suivant
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% else %}
+        <div class="empty-state">
+            <h5 class="mb-2">Aucun appareil trouvé</h5>
+            <p class="text-muted mb-0">Essaie de modifier les filtres pour élargir la recherche.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Dashboard</h2>
+        <p class="page-subtitle">
+            Bienvenue {{ current_user.first_name }} {{ current_user.last_name }}.
+            Voici l’état opérationnel du système RFID.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+        {% if current_user.role and current_user.role.name == "admin" %}
+        <a href="{{request.url_for('authorized_users.create.index')}}" class="btn btn-primary">Nouvel utilisateur</a>
+        <a href="{{request.url_for('rfid_cards.create.index')}}" class="btn btn-outline-primary">Nouvelle carte</a>
+        <a href="{{request.url_for('assignments.create.index')}}" class="btn btn-outline-primary">Nouvelle affectation</a>
+        <a href="{{request.url_for('devices.create.index')}}" class="btn btn-outline-primary">Nouvel appareil</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="section-title-wrap mb-3">
+    <h5 class="section-title">Activité du jour</h5>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card metric-card-success">
+            <div class="card-body">
+                <div class="metric-label">Accès accordés aujourd’hui</div>
+                <div class="metric-value">{{ kpis.granted_today }}</div>
+                <div class="small text-muted">Scans autorisés</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card metric-card-danger">
+            <div class="card-body">
+                <div class="metric-label">Accès refusés aujourd’hui</div>
+                <div class="metric-value">{{ kpis.denied_today }}</div>
+                <div class="small text-muted">Scans refusés</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card metric-card-secondary">
+            <div class="card-body">
+                <div class="metric-label">Scans ignorés aujourd’hui</div>
+                <div class="metric-value">{{ kpis.ignored_today }}</div>
+                <div class="small text-muted">Doublons / scans ignorés</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card metric-card-primary">
+            <div class="card-body">
+                <div class="metric-label">Entrées aujourd’hui</div>
+                <div class="metric-value">{{ kpis.entries_today }}</div>
+                <div class="small text-muted">Entrées accordées</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section-title-wrap mb-3">
+    <h5 class="section-title">État métier</h5>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card">
+            <div class="card-body">
+                <div class="metric-label">Utilisateurs actifs</div>
+                <div class="metric-value">{{ kpis.active_authorized_users }}</div>
+                <a href="{{request.url_for('authorized_users.index')}}" class="btn btn-outline-primary btn-sm mt-3">Voir</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card">
+            <div class="card-body">
+                <div class="metric-label">Affectations actives</div>
+                <div class="metric-value">{{ kpis.active_assignments }}</div>
+                <a href="{{request.url_for('assignments.index')}}" class="btn btn-outline-primary btn-sm mt-3">Voir</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card">
+            <div class="card-body">
+                <div class="metric-label">Cartes disponibles</div>
+                <div class="metric-value">{{ kpis.available_cards }}</div>
+                <a href="{{request.url_for('rfid_cards.index')}}" class="btn btn-outline-primary btn-sm mt-3">Voir</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card">
+            <div class="card-body">
+                <div class="metric-label">Appareils actifs</div>
+                <div class="metric-value">{{ kpis.active_devices }}</div>
+                <a href="{{request.url_for('devices.index')}}" class="btn btn-outline-primary btn-sm mt-3">Voir</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section-title-wrap mb-3">
+    <h5 class="section-title">Alertes et éléments à surveiller</h5>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card metric-card-warning">
+            <div class="card-body">
+                <div class="metric-label">Utilisateurs expirés</div>
+                <div class="metric-value">{{ kpis.expired_users }}</div>
+                <div class="small text-muted">Validité dépassée</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card metric-card-warning">
+            <div class="card-body">
+                <div class="metric-label">Affectations expirées</div>
+                <div class="metric-value">{{ kpis.expired_assignments }}</div>
+                <div class="small text-muted">À vérifier / réattribuer</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card metric-card-danger">
+            <div class="card-body">
+                <div class="metric-label">Cartes en anomalie</div>
+                <div class="metric-value">{{ kpis.abnormal_cards }}</div>
+                <div class="small text-muted">Blocked, lost, damaged, inactive</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card metric-card metric-card-danger">
+            <div class="card-body">
+                <div class="metric-label">Appareils inactifs</div>
+                <div class="metric-value">{{ kpis.inactive_devices }}</div>
+                <div class="small text-muted">À recontrôler</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="card-title mb-1">Derniers événements</h5>
+                        <p class="text-muted mb-0">Aperçu des derniers scans enregistrés.</p>
+                    </div>
+                    <a href="{{ request.url_for('access_logs.index') }}" class="btn btn-outline-primary btn-sm">Voir tout</a>
+                </div>
+
+                {% if recent_events %}
+                <div class="table-responsive">
+                    <table class="table table-modern align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date/heure</th>
+                                <th>UID</th>
+                                <th>Décision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in recent_events %}
+                            <tr>
+                                <td>{{ log.scanned_at.strftime("%d/%m/%Y %H:%M:%S") if log.scanned_at else "—" }}</td>
+                                <td class="fw-semibold">{{ log.uid_scanned }}</td>
+                                <td>
+                                    {% if log.access_status == "granted" %}
+                                    <span class="badge rounded-pill text-bg-success">granted</span>
+                                    {% elif log.access_status == "denied" %}
+                                    <span class="badge rounded-pill text-bg-danger">denied</span>
+                                    {% else %}
+                                    <span class="badge rounded-pill text-bg-secondary">ignored</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <h6 class="mb-1">Aucun événement récent</h6>
+                    <p class="text-muted mb-0">Les prochains scans apparaîtront ici.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="card-title mb-1">Derniers refus</h5>
+                        <p class="text-muted mb-0">Événements refusés les plus récents.</p>
+                    </div>
+                    <a href="{{ request.url_for('access_logs.index') }}?access_status=denied" class="btn btn-outline-danger btn-sm">Voir les refus</a>
+                </div>
+
+                {% if recent_denied_events %}
+                <div class="table-responsive">
+                    <table class="table table-modern align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date/heure</th>
+                                <th>UID</th>
+                                <th>Raison</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in recent_denied_events %}
+                            <tr>
+                                <td>{{ log.scanned_at.strftime("%d/%m/%Y %H:%M:%S") if log.scanned_at else "—" }}</td>
+                                <td class="fw-semibold">{{ log.uid_scanned }}</td>
+                                <td>{{ log.reason or "—" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <h6 class="mb-1">Aucun refus récent</h6>
+                    <p class="text-muted mb-0">Très bon signe pour l’activité du jour.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title mb-2">Parcours métier recommandé</h5>
+        <p class="text-muted mb-3">
+            Utilise ce flux pour configurer rapidement une porte RFID.
+        </p>
+
+        <div class="dashboard-flow">
+            <div class="dashboard-flow-item">
+                <div class="dashboard-flow-step">1</div>
+                <div>
+                    <div class="fw-semibold">Créer un utilisateur autorisé</div>
+                    <div class="text-muted small">Définir identité, statut et période de validité.</div>
+                </div>
+            </div>
+
+            <div class="dashboard-flow-item">
+                <div class="dashboard-flow-step">2</div>
+                <div>
+                    <div class="fw-semibold">Créer une carte RFID</div>
+                    <div class="text-muted small">Enregistrer l’UID et le statut initial du badge.</div>
+                </div>
+            </div>
+
+            <div class="dashboard-flow-item">
+                <div class="dashboard-flow-step">3</div>
+                <div>
+                    <div class="fw-semibold">Créer une affectation</div>
+                    <div class="text-muted small">Relier la carte RFID à un utilisateur autorisé.</div>
+                </div>
+            </div>
+
+            <div class="dashboard-flow-item">
+                <div class="dashboard-flow-step">4</div>
+                <div>
+                    <div class="fw-semibold">Configurer un appareil</div>
+                    <div class="text-muted small">Créer l’ESP32, générer son token et l’activer.</div>
+                </div>
+            </div>
+
+            <div class="dashboard-flow-item">
+                <div class="dashboard-flow-step">5</div>
+                <div>
+                    <div class="fw-semibold">Surveiller les accès</div>
+                    <div class="text-muted small">Analyser les logs, refus et événements récents.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

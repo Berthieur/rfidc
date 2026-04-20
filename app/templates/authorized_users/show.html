@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Détail utilisateur autorisé{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">{{ user.first_name }} {{ user.last_name }}</h2>
+        <p class="page-subtitle">Détail complet d’un utilisateur autorisé.</p>
+    </div>
+    <div class="page-actions">
+        {% if current_user.role and current_user.role.name == "admin" %}
+        <a href="{{request.url_for('authorized_users.edit',authorized_user_id=user.id)}}" class="btn btn-primary">Modifier</a>
+        <form method="post" action="{{request.url_for('authorized_users.delete',authorized_user_id=user.id)}}" onsubmit="return confirm('Voulez-vous vraiment supprimer cet utilisateur ?');">
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+        </form>
+        {% endif %}
+        <a href="{{request.url_for('authorized_users.index')}}" class="btn btn-outline-secondary">Retour</a>
+    </div>
+</div>
+
+<div class="card detail-page-card">
+    <div class="card-body">
+        <div class="detail-section">
+            <div class="detail-section-title">Informations personnelles</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-item-label">Prénom</span><div class="detail-item-value">{{ user.first_name }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Nom</span><div class="detail-item-value">{{ user.last_name }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Genre</span><div class="detail-item-value">{{ user.gender or "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Téléphone</span><div class="detail-item-value">{{ user.phone or "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">E-mail</span><div class="detail-item-value">{{ user.email or "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Code de référence</span><div class="detail-item-value">{{ user.reference_code or "—" }}</div></div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Accès et statut</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-item-label">Statut</span><div class="detail-item-value">{% if user.is_active %}<span class="badge rounded-pill text-bg-success">Actif</span>{% else %}<span class="badge rounded-pill text-bg-secondary">Inactif</span>{% endif %}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Valide à partir de</span><div class="detail-item-value">{{ user.valid_from.strftime("%d/%m/%Y %H:%M") if user.valid_from else "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Valide jusqu’à</span><div class="detail-item-value">{{ user.valid_until.strftime("%d/%m/%Y %H:%M") if user.valid_until else "—" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Supprimé le</span><div class="detail-item-value">{{ user.deleted_at.strftime("%d/%m/%Y %H:%M") if user.deleted_at else "Non" }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Créé le</span><div class="detail-item-value">{{ user.created_at.strftime("%d/%m/%Y %H:%M") }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Mis à jour le</span><div class="detail-item-value">{{ user.updated_at.strftime("%d/%m/%Y %H:%M") }}</div></div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Notes</div>
+            <div class="detail-note-box">{{ user.notes or "Aucune note." }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

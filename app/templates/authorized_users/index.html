@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Utilisateurs autorisés{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Utilisateurs autorisés</h2>
+        <p class="page-subtitle">
+            Gestion des personnes autorisées à accéder à la porte.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button
+            class="btn btn-outline-primary"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#filtersPanel"
+            aria-expanded="false"
+            aria-controls="filtersPanel"
+        >
+            Filtres
+        </button>
+
+        {% if current_user.role and current_user.role.name == "admin" %}
+        <a href="{{request.url_for('authorized_users.create.index')}}" class="btn btn-primary">
+            Nouvel utilisateur
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="collapse mb-4" id="filtersPanel">
+    <div class="card filter-panel">
+        <div class="card-body">
+            <form method="get" action="{{request.url_for('authorized_users.index')}}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Recherche</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="search"
+                        name="search"
+                        value="{{ filters.search }}"
+                        placeholder="Nom, prénom, email, téléphone, référence..."
+                    >
+                </div>
+
+                <div class="col-md-4">
+                    <label for="is_active" class="form-label">Statut</label>
+                    <select class="form-select" id="is_active" name="is_active">
+                        <option value="">Tous</option>
+                        <option value="active" {% if filters.is_active == "active" %}selected{% endif %}>Actif</option>
+                        <option value="inactive" {% if filters.is_active == "inactive" %}selected{% endif %}>Inactif</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="validity" class="form-label">Validité</label>
+                    <select class="form-select" id="validity" name="validity">
+                        <option value="">Toutes</option>
+                        <option value="with_validity" {% if filters.validity == "with_validity" %}selected{% endif %}>
+                            Avec période de validité
+                        </option>
+                        <option value="without_validity" {% if filters.validity == "without_validity" %}selected{% endif %}>
+                            Sans période de validité
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Appliquer</button>
+                    <a href="{{request.url_for('authorized_users.index')}}" class="btn btn-outline-secondary">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card data-card">
+    <div class="card-body">
+        {% if users %}
+        <div class="table-header-bar">
+            <div>
+                <span class="table-counter">{{ total }}</span>
+                <span class="text-muted">résultat(s)</span>
+            </div>
+            <div class="text-muted small">
+                Page {{ current_page }} / {{ total_pages }}
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern align-middle">
+                <thead>
+                    <tr>
+                        <th>Nom complet</th>
+                        <th>Référence</th>
+                        <th>Contact</th>
+                        <th>Validité</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ user.first_name }} {{ user.last_name }}</div>
+                            {% if user.gender %}
+                            <small class="text-muted">{{ user.gender }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.reference_code or "—" }}</td>
+                        <td>
+                            {% if user.email %}
+                            <div>{{ user.email }}</div>
+                            {% endif %}
+                            {% if user.phone %}
+                            <small class="text-muted">{{ user.phone }}</small>
+                            {% endif %}
+                            {% if not user.email and not user.phone %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.valid_from or user.valid_until %}
+                                <div>
+                                    <small class="text-muted">Début :</small>
+                                    {{ user.valid_from.strftime("%d/%m/%Y %H:%M") if user.valid_from else "—" }}
+                                </div>
+                                <div>
+                                    <small class="text-muted">Fin :</small>
+                                    {{ user.valid_until.strftime("%d/%m/%Y %H:%M") if user.valid_until else "—" }}
+                                </div>
+                            {% else %}
+                                <span class="text-muted">Aucune limitation</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="badge rounded-pill text-bg-success">Actif</span>
+                            {% else %}
+                            <span class="badge rounded-pill text-bg-secondary">Inactif</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="/authorized-users/{{ user.id }}" class="btn btn-sm btn-outline-info">
+                                Voir
+                            </a>
+
+                            {% if current_user.role and current_user.role.name == "admin" %}
+                            <a href="/authorized-users/{{ user.id }}/edit" class="btn btn-sm btn-outline-primary">
+                                Modifier
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <nav aria-label="Pagination utilisateurs autorisés" class="mt-4">
+            <ul class="pagination pagination-modern mb-0">
+                <li class="page-item {% if not has_previous %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="/authorized-users?page={{ previous_page }}&search={{ filters.search }}&is_active={{ filters.is_active }}&validity={{ filters.validity }}">
+                        Précédent
+                    </a>
+                </li>
+
+                {% for page_number in page_numbers %}
+                <li class="page-item {% if page_number == current_page %}active{% endif %}">
+                    <a class="page-link"
+                       href="/authorized-users?page={{ page_number }}&search={{ filters.search }}&is_active={{ filters.is_active }}&validity={{ filters.validity }}">
+                        {{ page_number }}
+                    </a>
+                </li>
+                {% endfor %}
+
+                <li class="page-item {% if not has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="/authorized-users?page={{ next_page }}&search={{ filters.search }}&is_active={{ filters.is_active }}&validity={{ filters.validity }}">
+                        Suivant
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% else %}
+        <div class="empty-state">
+            <h5 class="mb-2">Aucun utilisateur trouvé</h5>
+            <p class="text-muted mb-0">Essaie de modifier les filtres pour élargir la recherche.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

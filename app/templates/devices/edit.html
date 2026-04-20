@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier un appareil{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Modifier un appareil</h2>
+        <p class="page-subtitle">Mets à jour les informations de {{ device.device_name }}.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ request.url_for('devices.show', device_id=device.id) }}" class="btn btn-outline-secondary">Retour au détail</a>
+    </div>
+</div>
+
+<div class="card form-page-card">
+    <div class="card-body">
+        <form method="post" action="{{ request.url_for('devices.edit.store', device_id=device.id) }}">
+            <div class="form-section">
+                <div class="form-section-title">Identification de l’appareil</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="device_name" class="form-label">Nom de l’appareil</label>
+                        <input type="text" class="form-control" id="device_name" name="device_name" value="{{ form_data.get('device_name', '') }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="device_code" class="form-label">Code appareil</label>
+                        <input type="text" class="form-control" id="device_code" name="device_code" value="{{ form_data.get('device_code', '') }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="location" class="form-label">Localisation</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ form_data.get('location', '') }}">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if form_data.get('is_active', False) %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Appareil actif</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                <a href="{{ request.url_for('devices.show', device_id=device.id) }}" class="btn btn-outline-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

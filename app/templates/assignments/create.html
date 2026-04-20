@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Créer une affectation RFID{% endblock %}
+
+{% set now_dt = request.state.now if request.state.now is defined else none %}
+{% set default_assigned_at = now_dt.strftime("%Y-%m-%dT%H:%M") if now_dt else "" %}
+{% set default_expired_at = (now_dt.replace(year=now_dt.year + 1)).strftime("%Y-%m-%dT%H:%M") if now_dt else "" %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Créer une affectation RFID</h2>
+        <p class="page-subtitle">Associe une carte RFID à un utilisateur autorisé.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{request.url_for('assignments.index')}}" class="btn btn-outline-secondary">Retour à la liste</a>
+    </div>
+</div>
+
+<div class="card form-page-card">
+    <div class="card-body">
+        <form method="post" action="{{request.url_for('assignments.create.store')}}">
+            <div class="form-section">
+                <div class="form-section-title">Liaison principale</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="rfid_card_id" class="form-label">Carte RFID</label>
+                        <select class="form-select" id="rfid_card_id" name="rfid_card_id" required>
+                            <option value="">Choisir une carte</option>
+                            {% for card in cards %}
+                            <option value="{{ card.id }}" {% if form_data.get('rfid_card_id') == card.id %}selected{% endif %}>
+                                {{ card.uid }}{% if card.card_label %} - {{ card.card_label }}{% endif %} ({{ card.status }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="authorized_user_id" class="form-label">Utilisateur autorisé</label>
+                        <select class="form-select" id="authorized_user_id" name="authorized_user_id" required>
+                            <option value="">Choisir un utilisateur</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}" {% if form_data.get('authorized_user_id') == user.id %}selected{% endif %}>
+                                {{ user.first_name }} {{ user.last_name }}{% if user.reference_code %} - {{ user.reference_code }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Dates et statut</div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="assigned_at" class="form-label">Date d’attribution</label>
+                        <input
+                            type="datetime-local"
+                            class="form-control"
+                            id="assigned_at"
+                            name="assigned_at"
+                            value="{{ form_data.get('assigned_at', default_assigned_at) }}"
+                        >
+                    </div>
+                    <div class="col-md-4">
+                        <label for="expired_at" class="form-label">Date d’expiration</label>
+                        <input
+                            type="datetime-local"
+                            class="form-control"
+                            id="expired_at"
+                            name="expired_at"
+                            value="{{ form_data.get('expired_at', default_expired_at) }}"
+                        >
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">Statut</label>
+                        <select class="form-select" id="status" name="status" required>
+                            {% for item in statuses %}
+                            <option value="{{ item }}" {% if form_data.get('status', 'active') == item %}selected{% endif %}>{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">Notes</div>
+                <textarea class="form-control" id="notes" name="notes" rows="4">{{ form_data.get('notes', '') }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a href="{{request.url_for('assignments.index')}}" class="btn btn-outline-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

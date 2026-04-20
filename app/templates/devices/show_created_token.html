@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Token appareil généré{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Token appareil généré</h2>
+        <p class="page-subtitle">Copie ce token maintenant. Il ne sera plus réaffiché ensuite.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ request.url_for('devices.show', device_id=device.id) }}" class="btn btn-outline-secondary">Retour à l’appareil</a>
+    </div>
+</div>
+
+<div class="card token-page-card">
+    <div class="card-body">
+        <div class="detail-section">
+            <div class="detail-section-title">Informations appareil</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-item-label">Appareil</span><div class="detail-item-value">{{ device.device_name }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Code appareil</span><div class="detail-item-value">{{ device.device_code }}</div></div>
+                <div class="detail-item"><span class="detail-item-label">Localisation</span><div class="detail-item-value">{{ device.location or "—" }}</div></div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="detail-section-title">Token API</div>
+            <div class="token-box">{{ generated_token }}</div>
+            <div class="info-strip">
+                <span class="info-chip">Copie immédiate recommandée</span>
+                <span class="info-chip">Le token n’est pas stocké en clair</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
